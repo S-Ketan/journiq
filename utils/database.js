@@ -1,25 +1,28 @@
-import mongoose from "mongoose";
-import dotenv from "dotenv";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 dotenv.config();
 
 let isConnected = false;
 
 export const connectToDatabase = async () => {
-  mongoose.set("strictQuery", true);
+  mongoose.set('strictQuery', true);
   if (isConnected) {
-    console.log("MongoDB is already connected");
+    console.log('MongoDB is already connected');
     return;
   }
   try {
-    await mongoose.connect(process.env.MONGOBD_URI, {
-      dbName: "journiq",
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables');
+    }
+    await mongoose.connect(process.env.MONGODB_URI, {
+      dbName: 'journiq',
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-
     isConnected = true;
-    console.log("MongoDB is connected");
+    console.log('MongoDB is connected');
   } catch (error) {
-    console.log(error);
+    console.error('MongoDB connection error:', error);
+    throw error;
   }
 };

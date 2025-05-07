@@ -9,40 +9,78 @@ export default function HomePage() {
   const [popularDestinations, setPopularDestinations] = useState([]);
   const [error, setError] = useState('');
 
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         // Fetch featured hotels
-//         // const hotelsRes = await fetch('/api/hotels/featured');
-//         // const hotelsContentType = hotelsRes.headers.get('content-type');
-//         // if (!hotelsContentType || !hotelsContentType.includes('application/json')) {
-//         //   throw new Error('Featured hotels API did not return valid JSON');
-//         // }
-//         // if (!hotelsRes.ok) {
-//         //   throw new Error(`Failed to fetch featured hotels: ${hotelsRes.statusText}`);
-//         // }
-//         // const hotelsData = await hotelsRes.json();
-//         // setFeaturedHotels(hotelsData || []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch featured hotels
+        const hotelsRes = await fetch('http://localhost:5000/api/hotels/featured', {
+          headers: { 'Accept': 'application/json' }
+        });
+        const hotelsText = await hotelsRes.text();
+        console.log('Featured hotels raw response:', hotelsText);
+        console.log('Featured hotels headers:', Object.fromEntries(hotelsRes.headers.entries()));
+        console.log('Featured hotels status:', hotelsRes.status);
 
-//         // Fetch popular destinations
-//         const destinationsRes = await fetch('/api/destinations');
-//         const destinationsContentType = destinationsRes.headers.get('content-type');
-//         if (!destinationsContentType || !destinationsContentType.includes('application/json')) {
-//           throw new Error('Destinations API did not return valid JSON');
-//         }
-//         if (!destinationsRes.ok) {
-//           throw new Error(`Failed to fetch destinations: ${destinationsRes.statusText}`);
-//         }
-//         const destinationsData = await destinationsRes.json();
-//         setPopularDestinations(destinationsData || []);
-//       } catch (error) {
-//         console.error('Error fetching data:', error);
-//         setError('Failed to load data. Please try again later.');
-//       }
-//     };
+        const hotelsContentType = hotelsRes.headers.get('content-type');
+        if (!hotelsContentType || !hotelsContentType.includes('application/json')) {
+          throw new Error(`Featured hotels API did not return valid JSON: ${hotelsText.slice(0, 100)}`);
+        }
+        if (!hotelsRes.ok) {
+          let errorData;
+          try {
+            errorData = JSON.parse(hotelsText);
+            throw new Error(`Failed to fetch featured hotels: ${errorData.message || hotelsRes.statusText}`);
+          } catch {
+            throw new Error(`Failed to fetch featured hotels: ${hotelsRes.statusText}`);
+          }
+        }
+        const hotelsData = JSON.parse(hotelsText);
+        console.log('Parsed hotels:', hotelsData);
 
-//     fetchData();
-//   }, []);
+        // Map schema fields to HotelCard props
+        const mappedHotels = hotelsData.map(hotel => ({
+          _id: hotel._id,
+          name: hotel.name,
+          city: hotel.location, // Use location as city (adjust if needed)
+          startingPrice: hotel.rooms.length > 0 ? Math.min(...hotel.rooms.map(room => room.price)) : 0,
+          image: hotel.image || 'https://images.unsplash.com/photo-1544742959-8a65ad6d0d75' // Placeholder
+        }));
+        setFeaturedHotels(mappedHotels || []);
+
+        // Fetch popular destinations (commented out until endpoint is defined)
+        /*
+        const destinationsRes = await fetch('http://localhost:5000/api/destinations', {
+          headers: { 'Accept': 'application/json' }
+        });
+        const destinationsText = await destinationsRes.text();
+        console.log('Destinations raw response:', destinationsText);
+        console.log('Destinations headers:', Object.fromEntries(destinationsRes.headers.entries()));
+        console.log('Destinations status:', destinationsRes.status);
+
+        const destinationsContentType = destinationsRes.headers.get('content-type');
+        if (!destinationsContentType || !destinationsContentType.includes('application/json')) {
+          throw new Error(`Destinations API did not return valid JSON: ${destinationsText.slice(0, 100)}`);
+        }
+        if (!destinationsRes.ok) {
+          let errorData;
+          try {
+            errorData = JSON.parse(destinationsText);
+            throw new Error(`Failed to fetch destinations: ${errorData.message || destinationsRes.statusText}`);
+          } catch {
+            throw new Error(`Failed to fetch destinations: ${destinationsRes.statusText}`);
+          }
+        }
+        const destinationsData = JSON.parse(destinationsText);
+        setPopularDestinations(destinationsData || []);
+        */
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError(`Failed to load data: ${error.message}`);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <main className="min-h-screen">
@@ -73,6 +111,12 @@ export default function HomePage() {
       {error && (
         <div className="py-4 px-4 text-center text-red-500">
           <p>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+          >
+            Retry
+          </button>
         </div>
       )}
 
