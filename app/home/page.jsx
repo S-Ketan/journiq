@@ -48,7 +48,7 @@ export default function HomePage() {
         setFeaturedHotels(mappedHotels || []);
 
         // Fetch popular destinations (commented out until endpoint is defined)
-        /*
+        
         const destinationsRes = await fetch('http://localhost:5000/api/destinations', {
           headers: { 'Accept': 'application/json' }
         });
@@ -72,7 +72,7 @@ export default function HomePage() {
         }
         const destinationsData = JSON.parse(destinationsText);
         setPopularDestinations(destinationsData || []);
-        */
+        
       } catch (error) {
         console.error('Error fetching data:', error);
         setError(`Failed to load data: ${error.message}`);
