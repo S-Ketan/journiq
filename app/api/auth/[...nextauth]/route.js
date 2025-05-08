@@ -27,7 +27,9 @@ export const authOptions = {
         await connectToDatabase();
         const sessionUser = await User.findOne({ email: session.user.email });
         if (sessionUser) {
-          session.user.id = sessionUser._id.toString();
+          // session.user.id = sessionUser._id.toString();
+          session.user.id = User.id; // Add user ID to session
+          
         }
         return session;
       } catch (error) {

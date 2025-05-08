@@ -15,7 +15,7 @@ export const connectToDatabase = async () => {
       throw new Error('MONGODB_URI is not defined in environment variables');
     }
     await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: 'journiq',
+      dbName: 'test',
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

@@ -1,11 +1,12 @@
 
 import HotelList  from '@components/HotelList'
 import React from 'react'
+import HomePage from './home/page'
 
 const page = () => {
   return (
     <div>
-      tmkc
+     <HomePage />
     </div>
   )
 }

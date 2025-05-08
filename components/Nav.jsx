@@ -22,6 +22,7 @@ const Navbar = React.memo(() => {
       '/services': 'Services',
       '/aboutus': 'About Us',
       '/mybookings': 'My Bookings',
+      '/expenses': 'Expenses',
     };
     setSelectedPage(pageMap[pathname] || 'Home');
   }, [pathname]);
@@ -45,7 +46,7 @@ const Navbar = React.memo(() => {
     }
   };
 
-  const navItems = ['Home', 'Services', 'About Us', 'My Bookings'];
+  const navItems = ['Home', 'Services', 'About Us', 'My Bookings', 'Expenses'];
 
   return (
     <div className="w-full h-[10vh] border-b-2">
@@ -89,7 +90,7 @@ const Navbar = React.memo(() => {
           {status === 'authenticated' ? (
             <>
               <p className="text-center h-full flex items-center p-3">
-                {session.user.name || session.user.email}
+                { session.user.email }
               </p>
               <button
                 onClick={handleSignOut}

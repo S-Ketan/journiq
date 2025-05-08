@@ -1,8 +1,10 @@
 'use client';
 import Image from 'next/image';
 import React, { useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
+  const { data: session, status } = useSession();
   const [showRooms, setShowRooms] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -50,6 +52,10 @@ const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
   };
 
   const handleBookRoom = async (roomType) => {
+    if (status !== 'authenticated') {
+      setBookingStatus('Please sign in to book a room.');
+      return;
+    }
     if (!roomType) {
       setBookingStatus('Please select a room type.');
       return;
@@ -58,19 +64,27 @@ const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
       setBookingStatus('Quantity must be at least 1.');
       return;
     }
+    if (!session?.user?.id) {
+      setBookingStatus('User ID not found. Please sign in again.');
+      return;
+    }
 
     try {
       setBookingStatus('');
+      console.log('Booking request:', { hotelId, roomType, quantity, userId: session.user.id });
       const response = await fetch(`http://localhost:5000/api/hotels/${hotelId}/book`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'X-User-ID': session.user.id
         },
         body: JSON.stringify({ roomType, quantity })
       });
       const text = await response.text();
       console.log('Booking response:', text);
+      console.log('Booking headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Booking status:', response.status);
 
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
@@ -100,7 +114,6 @@ const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
 
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      {/* Hotel Image */}
       <div className="relative h-48 w-full">
         <Image
           src={image}
@@ -111,8 +124,6 @@ const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
           priority
         />
       </div>
-
-      {/* Hotel Info */}
       <div className="p-4">
         <h2 className="text-xl font-bold text-gray-800 mb-1">{name}</h2>
         <p className="text-sm text-gray-600 mb-2">
@@ -122,8 +133,6 @@ const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
         <p className="text-lg font-semibold text-green-600">
           From ${startingPrice}/night
         </p>
-
-        {/* View Rooms Button */}
         <button
           onClick={handleViewDetails}
           disabled={loading}
@@ -135,13 +144,9 @@ const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
         >
           {loading ? 'Loading...' : showRooms ? 'Hide Rooms' : 'View Rooms'}
         </button>
-
-        {/* Error Message */}
         {error && (
           <p className="mt-2 text-red-500 text-sm text-center">{error}</p>
         )}
-
-        {/* Rooms List */}
         {showRooms && (
           <div className="mt-4 pt-4 border-t border-gray-100">
             <h3 className="text-lg font-semibold mb-3">Available Rooms</h3>
@@ -166,8 +171,6 @@ const HotelCard = ({ hotelId, image, name, city, startingPrice }) => {
                         </p>
                       </div>
                     </div>
-
-                    {/* Book Room Form */}
                     <div className="mt-2">
                       <div className="flex items-center gap-2">
                         <input
